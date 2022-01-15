@@ -26,68 +26,42 @@ Moralis.Cloud.define("getMyCrowdfundingNFTs", async (request) => {
     token_addresses: [request.params.CrowdfundingNFTAddress],
   }  
   const balances = await Moralis.Web3API.account.getNFTs(options);
-  logger.info(balances);
   return balances;
-    /*let myCrowdfundingNFTs = [];
-    const web3 = Moralis.web3ByChain("0x2a");
-    const contract = new web3.eth.Contract(CrowdfundingNFTABI, request.params.CrowdfundingNFTAddress);
-    const query = new Moralis.Query("EthNFTOwners");
-    query.equalTo("token_address", request.params.CrowdfundingNFTAddress);
-    query.equalTo("owner_of", request.params.walletAddress);
-    let result = await query.find();
-    if(result) {
-        for(let i = 0; i < result.length; i++) {
-            const nftInfo = await contract.methods.allNFTs(result[i].get("token_id")).call();
-            const _alreadyStreamed = await contract.methods.getAlreadyStreamed(result[i].get("token_id")).call();
-            let myCrowdfundingNFT = {
-                id: result[i].id,
-                tokenId: result[i].get("token_id"),
-                name: result[i].get("name"),
-                symbol: result[i].get("symbol"),
-                startingBlock: nftInfo.startingBlock,
-                endingBlock: nftInfo.endingBlock,
-                streamReceiver: nftInfo.streamReceiver,
-                streamAmount: nftInfo.streamAmount,
-                streamRate: nftInfo.streamRate,
-                streamToken: nftInfo.streamToken,
-                securityAmount: nftInfo.securityAmount,
-                minter: nftInfo.minter,
-                isStopped: nftInfo.isStopped,
-                alreadyStreamed: _alreadyStreamed,
-            }
-            myCrowdfundingNFTs.push(myCrowdfundingNFT);
-        }
-    }
-    // search for pending NFTs balances
-    const queryPending = new Moralis.Query("EthNFTOwnersPending");
-    queryPending.equalTo("token_address", request.params.CrowdfundingNFTAddress);
-    queryPending.equalTo("owner_of", request.params.walletAddress);
-    let resultPending = await queryPending.find();
-    if(resultPending) {
-      for(let i = 0; i < resultPending.length; i++) {
-        const nftInfo = await contract.methods.allNFTs(resultPending[i].get("token_id")).call();
-        const _alreadyStreamed = await contract.methods.getAlreadyStreamed(resultPending[i].get("token_id")).call();
-        let myCrowdfundingNFT = {
-          id: result[i].id,
-          tokenId: result[i].get("token_id"),
-          name: result[i].get("name"),
-          symbol: result[i].get("symbol"),
-          startingBlock: nftInfo.startingBlock,
-          endingBlock: nftInfo.endingBlock,
-          streamReceiver: nftInfo.streamReceiver,
-          streamAmount: nftInfo.streamAmount,
-          streamRate: nftInfo.streamRate,
-          streamToken: nftInfo.streamToken,
-          securityAmount: nftInfo.securityAmount,
-          minter: nftInfo.minter,
-          isStopped: nftInfo.isStopped,
-          alreadyStreamed: _alreadyStreamed,
-      }
-      myCrowdfundingNFTs.push(myCrowdfundingNFT);
-      }
-    }
-    return myCrowdfundingNFTs;*/
 });
+
+Moralis.Cloud.job("checkNFTs", async (request) => {
+  const CrowdfundingNFTAddress = "0xC9B8f7A5FC6d20Fb2B8E453E020F0951299a370d";
+  const web3 = Moralis.web3ByChain("0x2a");
+  const contract= new web3.eth.Contract(CrowdfundingNFTABI, CrowdfundingNFTAddress);
+  let salesToClose = [];
+  salesToClose = await contractMarketplace.methods.checkForUpdate(MagePadNFTAddress).call();
+  let newFlowsToStop = [];
+    for (let i = 0; i < flowsToStop.length; i++) {
+      flowsToStop[i] != 0 && newFlowsToStop.push(parseInt(flowsToStop[i]));
+    }
+  
+    if(newFlowsToStop.length > 0) {
+    const data = contract.methods.performUpdate(newFlowsToStop, CrowdfundingNFTAddress);
+    const txData = data.encodeABI();
+    let config;
+    config = await Moralis.Config.get({useMasterKey: true});
+    const address = config.get("address");
+    const gas = await data.estimateGas({from: address});
+    const gasPrice = await web3.eth.getGasPrice();
+    const txNonce = await web3.eth.getTransactionCount(address);
+    const privateKey = config.get("privateKey");
+
+    tx = {
+      to: CrowdfundingNFTAddress,
+      data: txData,
+      gas: gas,
+      gasPrice: gasPrice,
+      nonce: txNonce,
+    };
+    const signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
+    await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+  }
+})
 
 const CrowdfundingNFTABI = [
   {
