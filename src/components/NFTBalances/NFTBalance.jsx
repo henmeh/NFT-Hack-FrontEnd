@@ -76,11 +76,10 @@ function NFTBalance({ nft, index }) {
       //key={nft.id}
     >
       <h3 style={{ color: "black" }}>{nft.name + " " + nft.token_id} </h3>
-      <p style={{ color: "black" }}>Tokens already streamed</p>
-      <p style={{color: "green"}}>{(alreadyStreamed / 1000000000000000000).toFixed(6) + "(Tokenaddress: " + tokenAddress + ")"}</p>
       <p style={{ color: "black" }}>Tokens left to stream</p>
       <p style={{color: "red"}}>{(leftToStream / 1000000000000000000).toFixed(6) + "(Tokenaddress: " + tokenAddress + ")"}</p>
-    
+      <p style={{ color: "black" }}>Tokens already streamed</p>
+      <p style={{color: "green"}}>{(alreadyStreamed / 1000000000000000000).toFixed(6) + "(Tokenaddress: " + tokenAddress + ")"}</p>    
     </Card>
   );
 }

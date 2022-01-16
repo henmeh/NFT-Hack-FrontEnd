@@ -12,8 +12,7 @@ import {
   Spin,
 } from "antd";
 import { Moralis } from "moralis";
-import { useMoralis, useMoralisCloudFunction } from "react-moralis";
-import {IERC20ABI, ISuperTokenABI, MagePadABI, MagePadAddress, SuperTokenFactoryABI, SuperTokenFactoryAddress} from "../../helpers/contractABI";
+import { useMoralis, useMoralisFile } from "react-moralis";
 
 Moralis.start({
   serverUrl: process.env.REACT_APP_MORALIS_SERVER_URL,
@@ -22,6 +21,7 @@ Moralis.start({
 
 const NewProjectModal = ({ open, onClose }) => {
   const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
   const [projectAddress, setProjectAddress] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [nftStreamDuration, setnftStreamDuration] = useState();
@@ -29,24 +29,25 @@ const NewProjectModal = ({ open, onClose }) => {
   const [nftStreamPeriod, setnftStreamPeriod] = useState("days");
 
   const { Moralis, user } = useMoralis();
+  const {  saveFile } = useMoralisFile(); // To save file in IPFS
   const walletAddress = user ? user.attributes.ethAddress : null;
 
   const create = async function () {
     setIsLoading(true);
     
-    let moralisFile;
+    let moralisIPFSFile;
     const fileUploadControl = document.getElementById("profilePhotoFileUpload");
     if (fileUploadControl.files.length > 0) {
         const file = fileUploadControl.files[0];
-        const name = projectName + ".jpg";
-        moralisFile = new Moralis.File(name, file);
-        await moralisFile.save();
+        const fileName = fileUploadControl.files[0].name;
+        moralisIPFSFile = await saveFile(fileName, file, {throwOnError: true, saveIPFS: true});
     }
     const Project = Moralis.Object.extend("Crowdfundingrojects");
     const project = new Project();
 
     project.set("name", projectName);
-    project.set("image", moralisFile);
+    project.set("description", projectDescription);
+    project.set("image", moralisIPFSFile);
     project.set("projectAddress", projectAddress);
     project.set("streamduration", nftStreamDuration);
     project.set("streamperiod", nftStreamPeriod);
@@ -118,16 +119,19 @@ const styles = {
         }}
       >
         <div>
-            <h3 style={{ color: "orange",  display: "flex", justifyContent: "center" }}>Projectinformation</h3>
+            <h3 style={{ color: "orange",  display: "flex", justifyContent: "center" }}>Project information</h3>
         </div>
         <Form.Item label={<h4 style={{ color: "white" }}>Choose a picture for your project</h4>}>
             <Input type="file" id="profilePhotoFileUpload"/>
         </Form.Item>
         <Form name="newproject" labelCol={{ span: 25 }}>
-          <Form.Item label={<h4 style={{ color: "white" }}>Projectname</h4>}>
+          <Form.Item label={<h4 style={{ color: "white" }}>Project name</h4>}>
             <Input onChange={(event) => setProjectName(event.target.value)} />
           </Form.Item>
-          <Form.Item label={<h4 style={{ color: "white" }}>Walletaddress of Projectowner</h4>}>
+          <Form.Item label={<h4 style={{ color: "white" }}>Project description</h4>}>
+            <Input onChange={(event) => setProjectDescription(event.target.value)} />
+          </Form.Item>
+          <Form.Item label={<h4 style={{ color: "white" }}>Walletaddress of Project owner</h4>}>
             <Input onChange={(event) => setProjectAddress(event.target.value)} />
          </Form.Item>
          <Form.Item

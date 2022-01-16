@@ -20,27 +20,60 @@ function Balance({balance, decimals, tokenAddress}) {
     const { Moralis, user } = useMoralis();
     const walletAddress = user ? user.attributes.ethAddress : null;
     const { data, error, isLoading } = useMoralisCloudFunction("getSuperTokens");
-    const [ tokenBalance, setTokenBalance ] = useState("");
+    const [ tokenBalance, setTokenBalance ] = useState(0);
     const [ tokenFlow, setTokenFlow ] = useState(0);
 
     const initialzeSuperFluid = async () => {
         if(data) {
             if(data.includes(tokenAddress)) {
+                console.log(tokenAddress);
                 const web3 = await Moralis.enableWeb3();
                 const web3_1 = new Web3("wss://speedy-nodes-nyc.moralis.io/cff6f789838e10c4008b1baa/avalanche/testnet/ws");
-                const sf = new SuperfluidSDK.Framework({web3: web3});
-                await sf.initialize();
-                //create user
-                const tokenUser = sf.user({address: walletAddress, token: tokenAddress});
+                const url = "https://speedy-nodes-nyc.moralis.io/cff6f789838e10c4008b1baa/eth/kovan/archive";
+                const customHttpProvider = new ethers.providers.JsonRpcProvider(url);
+
+                const sf = await Framework.create({
+                    networkName: "kovan",
+                    provider: customHttpProvider
+                });
+
+                //getting outFlow of token
+                const outFlow = await sf.query.listStreams({sender: walletAddress, token: tokenAddress});
+                //getting inFlow of token
+                const inFlow = await sf.query.listStreams({receiver: walletAddress, token: tokenAddress});
+
+                console.log(outFlow.data);
+                console.log(inFlow.data);
                 
+                let outFlowRate = 0;
+                let inFlowRate = 0;
+
+                if(outFlow.data.length > 0) {
+                    for(let i = 0; i < outFlow.data.length; i++) {
+                        outFlowRate = outFlowRate + parseInt(outFlow.data[i].currentFlowRate) 
+                    }
+                }
+
+                if(inFlow.data.length > 0) {
+                    for(let i = 0; i < inFlow.data.length; i++) {
+                        inFlowRate = inFlowRate + parseInt(inFlow.data[i].currentFlowRate) 
+                    }
+                }
+
+                console.log(outFlowRate);
+                console.log(inFlowRate);
+
+                const netFlowRate = inFlowRate - outFlowRate;
+                setTokenFlow(netFlowRate);
+                console.log(netFlowRate);
+
                 const contract = new web3.eth.Contract(ISuperTokenABI, tokenAddress);
                 const balance = await contract.methods.balanceOf(walletAddress).call();
                 setTokenBalance(balance);                  
         
                 const interval = setInterval(async () => {
-                    const details = await tokenUser.details();
-                    setTokenFlow(parseInt(details.cfa.netFlow));
-                    setTokenBalance(tokenBalance => parseInt(tokenBalance) + parseInt(details.cfa.netFlow) / 10);
+                    //setTokenFlow(parseInt(details.cfa.netFlow));
+                    setTokenBalance(tokenBalance => parseInt(tokenBalance) + netFlowRate / 10);
                 }, 100);
                 return () => clearInterval(interval);
             }
@@ -57,7 +90,7 @@ function Balance({balance, decimals, tokenAddress}) {
     if(tokenFlow === 0) {
         return (
             <div>
-                {parseFloat(Moralis.Units.FromWei(tokenBalance, decimals).toFixed(6))}
+                {parseFloat(Moralis.Units.FromWei(tokenBalance.toString(), decimals).toFixed(6))}
             </div>
         )
     }
@@ -65,7 +98,7 @@ function Balance({balance, decimals, tokenAddress}) {
     else if(tokenFlow > 0) {
         return (
             <div style={{color: "green"}}>
-                {parseFloat(Moralis.Units.FromWei(tokenBalance, decimals).toFixed(6))}
+                {parseFloat(Moralis.Units.FromWei(tokenBalance.toString(), decimals).toFixed(6))}
             </div>
         )
     }
@@ -73,7 +106,7 @@ function Balance({balance, decimals, tokenAddress}) {
     else {
         return (
             <div style={{color: "red"}}>
-                {parseFloat(Moralis.Units.FromWei(tokenBalance, decimals).toFixed(6))}
+                {parseFloat(Moralis.Units.FromWei(tokenBalance.toString(), decimals).toFixed(6))}
             </div>
         )
     }

@@ -600,7 +600,7 @@ export const CrowdfundingNFTABI = [
   }
 ];
 
-export const CrowdfundingNFTAddress = "0xC9B8f7A5FC6d20Fb2B8E453E020F0951299a370d".toLowerCase();
+export const CrowdfundingNFTAddress = "0x336da328D69b533B850C3444C41f7D391703c2Ab".toLowerCase();
 
 
 export const SuperTokenFactoryABI = [

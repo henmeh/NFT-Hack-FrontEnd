@@ -30,12 +30,11 @@ Moralis.Cloud.define("getMyCrowdfundingNFTs", async (request) => {
 });
 
 Moralis.Cloud.job("checkNFTs", async (request) => {
-  const CrowdfundingNFTAddress = "0xC9B8f7A5FC6d20Fb2B8E453E020F0951299a370d";
+  const CrowdfundingNFTAddress = "0x336da328D69b533B850C3444C41f7D391703c2Ab";
   const web3 = Moralis.web3ByChain("0x2a");
   const contract= new web3.eth.Contract(CrowdfundingNFTABI, CrowdfundingNFTAddress);
-  let salesToClose = [];
-  salesToClose = await contractMarketplace.methods.checkForUpdate(MagePadNFTAddress).call();
   let newFlowsToStop = [];
+  const flowsToStop = await contract.methods.checkForUpdate().call();
     for (let i = 0; i < flowsToStop.length; i++) {
       flowsToStop[i] != 0 && newFlowsToStop.push(parseInt(flowsToStop[i]));
     }

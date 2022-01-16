@@ -34,6 +34,7 @@ function Projectfunding({ tokenId, index }) {
   const [tokenAddress, setTokenAddress] = useState("");
 
   const fetchNFTData = async function () {
+    const web3 = await Moralis.enableWeb3();
     const optionsnftInfo = {
       contractAddress: CrowdfundingNFTAddress,
       functionName: "allNFTs",

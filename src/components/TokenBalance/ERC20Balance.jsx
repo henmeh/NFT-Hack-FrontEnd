@@ -23,21 +23,21 @@ function ERC20Balance() {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      width: "25%",
+      width: 75,
       render: (name) => name,
     },
     {
       title: "Symbol",
       dataIndex: "symbol",
       key: "symbol",
-      width: "25%",
+      width: 75,
       render: (symbol) => symbol,
     },
     {
       title: "Balance",
       dataIndex: "balance",
       key: "balance",
-      width: "25%",
+      width: 500,
       render: (value, item) => (
         <Balance balance={value} decimals={item.decimals} tokenAddress={item.token_address}/>
       ),
@@ -46,7 +46,7 @@ function ERC20Balance() {
       title: "Address",
       dataIndex: "token_address",
       key: "token_address",
-      width: "25%",
+      width: 75,
       render: (address) => getEllipsisTxt(address, 5),
     },
   ];

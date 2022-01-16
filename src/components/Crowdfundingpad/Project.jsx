@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useMoralis, useMoralisCloudFunction } from "react-moralis";
-import { Card, Image, Button, InputNumber, Menu, Form, Space, Dropdown } from "antd";
+import { Card, Image, Button, InputNumber, Menu, Form, Space, Dropdown, Spin } from "antd";
 import { Moralis } from "moralis";
 import { CrowdfundingNFTAddress, CrowdfundingNFTABI, SuperTokenFactoryAddress, ISuperTokenABI, SuperTokenFactoryABI, IERC20ABI } from "../../helpers/contractABI";
 import { DateConverted } from "../../helpers/formatters";
@@ -20,6 +20,7 @@ function Project({ project, index }) {
   const [fundingTokenSymbol, setFundingTokenSymbol] = useState("");
   const [fundingTokenDecimals, setFundingTokenDecimals] = useState();
   const [transaction, setTransaction] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { data, error } = useMoralisCloudFunction(
     "getTokenBalances",
     { walletAddress },
@@ -51,6 +52,7 @@ function Project({ project, index }) {
   }
 
   const invest = async function () {
+    setIsLoading(true);
     //check if projecttoken is a superfluid token
     const superTokens = await Moralis.Cloud.run("getSuperTokens");
     //if project is not already funded with an nft the nft has to be minted
@@ -168,6 +170,8 @@ function Project({ project, index }) {
       result.set("isFunded", true);
       result.set("initialFundingToken", _projectSuperTokenAddress);
       await result.save();
+      setIsLoading(false);
+
     //}
     //project is already funded
     /*else {
@@ -214,19 +218,20 @@ function Project({ project, index }) {
       cover={
         <div style={{display: "flex", flexDirection:"row", justifyContent:"space-between"}}>
             <div style={{display: "flex", flexDirection:"column", color: "black"}}>
-                <h2 style={{color: "black"}}>{"Projectname: " + project.attributes.name}</h2>
+                <h2 style={{color: "black"}}>{"Project name: " + project.attributes.name}</h2>
+                <p style={{color: "black"}}>{"Project description: " + project.attributes.description}</p>
             </div>
             <Image
                 width={100}
                 height={100}
                 style={{borderRadius: "50px"}}
-                src={project.attributes.image._url} />
+                src={project.attributes.image.ipfs()} />
         </div>
       }
       //key={nft.id}
     >
         <div style={{display: "flex", flexDirection:"column", color: "black"}}>
-            <p>Projectowner: {project.attributes.projectAddress}</p>
+            <p>Project owner: {project.attributes.projectAddress}</p>
             <p>Project created at: {DateConverted(project.attributes.projectCreation)}</p>            
         </div>
         {project.attributes.isFunded == false ?
@@ -243,8 +248,9 @@ function Project({ project, index }) {
               </Dropdown.Button>
             </Space>
           </Form.Item>
-          <p style={{color: "black"}}> Tokenamount </p>
+          <p style={{color: "black"}}> Token amount </p>
           <InputNumber defaultValue={0} onChange={(value) => setFundingTokenAmount(value)} />
+          {isLoading ? <Spin /> : 
           <Button
               onClick={invest}
               style={{
@@ -255,7 +261,7 @@ function Project({ project, index }) {
               }}
           >
               Invest
-          </Button>  
+          </Button> } 
           </div>
           </div> : 
           <div style={{display: "flex", flexDirection:"column", color: "black"}}>
@@ -272,6 +278,7 @@ function Project({ project, index }) {
                 {fundingTokenName}
               </Dropdown.Button>         
           </div>
+          {isLoading ? <Spin /> : 
           <Button
               onClick={invest}
               style={{
@@ -282,7 +289,7 @@ function Project({ project, index }) {
               }}
           >
               Invest with a new NFT
-          </Button> 
+          </Button> } 
             </div>            
           </div>
           </div>
